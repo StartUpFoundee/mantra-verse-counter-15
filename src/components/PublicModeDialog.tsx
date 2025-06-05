@@ -57,8 +57,8 @@ const PublicModeDialog: React.FC<PublicModeDialogProps> = ({
             <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg">
               <Zap className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium text-sm">Tap 4 times quickly to exit</p>
-                <p className="text-xs text-gray-500">Four taps within 2 seconds</p>
+                <p className="font-medium text-sm">Tap 6 times quickly to exit</p>
+                <p className="text-xs text-gray-500">Six taps within 3 seconds</p>
               </div>
             </div>
             
