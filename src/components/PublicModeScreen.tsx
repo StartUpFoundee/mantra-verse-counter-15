@@ -10,8 +10,6 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
   onExit,
 }) => {
   const [lastTapTime, setLastTapTime] = useState<number>(0);
-  const [tapCount, setTapCount] = useState<number>(0);
-  const [exitTapSequence, setExitTapSequence] = useState<number[]>([]);
   const wakeLockRef = useRef<any>(null);
   const vibrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -30,9 +28,12 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
     requestWakeLock();
 
-    // Hide status bars and make fullscreen - Enhanced implementation
+    // Enhanced fullscreen implementation to completely hide all UI
     const enterFullscreen = async () => {
       try {
+        // Hide address bar and system UI first
+        window.scrollTo(0, 1);
+        
         // Request fullscreen on document element
         if (document.documentElement.requestFullscreen) {
           await document.documentElement.requestFullscreen();
@@ -44,9 +45,19 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
           await (document.documentElement as any).msRequestFullscreen();
         }
 
-        // Hide address bar on mobile browsers
-        if (window.screen && (window.screen as any).orientation) {
-          window.scrollTo(0, 1);
+        // Additional mobile-specific fullscreen handling
+        if ((screen as any).orientation && (screen as any).orientation.lock) {
+          try {
+            await (screen as any).orientation.lock('portrait');
+          } catch (e) {
+            console.log('Screen orientation lock not supported');
+          }
+        }
+
+        // Force viewport to remove any system UI
+        const metaViewport = document.querySelector('meta[name="viewport"]');
+        if (metaViewport) {
+          metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
         }
       } catch (error) {
         console.error('Failed to enter fullscreen:', error);
@@ -54,6 +65,17 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
     };
 
     enterFullscreen();
+
+    // Power button exit detection - listen for visibility change
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // User pressed power button to turn screen back on
+        console.log('Screen turned back on - exiting public mode');
+        onExit();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Cleanup on unmount
     return () => {
@@ -66,6 +88,9 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         clearTimeout(vibrationTimeoutRef.current);
       }
       
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      
+      // Exit fullscreen
       if (document.exitFullscreen) {
         document.exitFullscreen().catch(console.error);
       } else if ((document as any).webkitExitFullscreen) {
@@ -75,8 +100,14 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
       } else if ((document as any).msExitFullscreen) {
         (document as any).msExitFullscreen();
       }
+
+      // Restore viewport
+      const metaViewport = document.querySelector('meta[name="viewport"]');
+      if (metaViewport) {
+        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+      }
     };
-  }, []);
+  }, [onExit]);
 
   const triggerVibration = () => {
     // Clear any existing vibration timeout
@@ -105,21 +136,7 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
   const handleTap = () => {
     const currentTime = Date.now();
     
-    // Handle exit sequence (6 quick taps within 3 seconds) - FIXED: Changed from 4 to 6 taps
-    const newExitSequence = [...exitTapSequence, currentTime];
-    
-    // Keep only taps within the last 3 seconds - FIXED: Changed from 2 to 3 seconds
-    const recentExitTaps = newExitSequence.filter(time => currentTime - time <= 3000);
-    setExitTapSequence(recentExitTaps);
-    
-    // Check if 6 quick taps occurred - FIXED: Changed from 4 to 6 taps
-    if (recentExitTaps.length >= 6) {
-      console.log('Exit sequence detected - 6 quick taps');
-      onExit();
-      return;
-    }
-    
-    // Handle double tap for counting - Completely separate from exit logic
+    // Handle double tap for counting only (no exit logic via taps)
     const timeSinceLastTap = currentTime - lastTapTime;
     
     if (timeSinceLastTap <= 500 && timeSinceLastTap >= 100) { // Double tap within 500ms but at least 100ms apart
@@ -127,22 +144,20 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
       console.log('Valid double tap detected - incrementing count');
       onIncrement();
       
-      // Provide haptic feedback - FIXED: Separated vibration from tap detection
+      // Provide haptic feedback - completely separated from any exit logic
       triggerVibration();
       
       // Reset tap tracking for counting
-      setTapCount(0);
       setLastTapTime(0);
     } else if (timeSinceLastTap >= 300) { // Debounce - minimum 300ms between potential first taps
       // First tap of potential double tap
-      setTapCount(1);
       setLastTapTime(currentTime);
     }
   };
 
   return (
     <div 
-      className="fixed inset-0 bg-black z-50 w-full h-full cursor-none select-none"
+      className="fixed inset-0 w-full h-full cursor-none select-none"
       onTouchStart={handleTouch}
       onClick={handleClick}
       style={{
@@ -154,16 +169,30 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         width: '100vw',
         height: '100vh',
         backgroundColor: '#000000',
-        zIndex: 9999,
+        zIndex: 999999,
         touchAction: 'none',
         userSelect: 'none',
         WebkitUserSelect: 'none',
         WebkitTouchCallout: 'none',
         WebkitTapHighlightColor: 'transparent',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        // Enhanced CSS to remove any possible UI elements
+        WebkitAppearance: 'none',
+        border: 'none',
+        outline: 'none',
+        margin: 0,
+        padding: 0,
+        // Ensure complete coverage including notch areas
+        paddingTop: 'env(safe-area-inset-top, 0)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0)',
+        paddingLeft: 'env(safe-area-inset-left, 0)',
+        paddingRight: 'env(safe-area-inset-right, 0)',
+        // Override any system styles
+        background: '#000000 !important',
+        color: 'transparent'
       }}
     >
-      {/* Completely black screen - no content */}
+      {/* Completely black screen - absolutely no content */}
     </div>
   );
 };

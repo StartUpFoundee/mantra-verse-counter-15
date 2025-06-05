@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Eye, Smartphone, Hand, Zap } from "lucide-react";
+import { Eye, Smartphone, Hand, Power } from "lucide-react";
 
 interface PublicModeDialogProps {
   isOpen: boolean;
@@ -42,7 +42,7 @@ const PublicModeDialog: React.FC<PublicModeDialogProps> = ({
               <Smartphone className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-medium text-sm">Screen will turn completely black</p>
-                <p className="text-xs text-gray-500">Phone will appear off to others</p>
+                <p className="text-xs text-gray-500">Phone will appear completely off to others</p>
               </div>
             </div>
             
@@ -55,10 +55,10 @@ const PublicModeDialog: React.FC<PublicModeDialogProps> = ({
             </div>
             
             <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg">
-              <Zap className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
+              <Power className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium text-sm">Tap 6 times quickly to exit</p>
-                <p className="text-xs text-gray-500">Six taps within 3 seconds</p>
+                <p className="font-medium text-sm">Press power button to exit</p>
+                <p className="text-xs text-gray-500">Turn screen off then on to return</p>
               </div>
             </div>
             
@@ -66,10 +66,10 @@ const PublicModeDialog: React.FC<PublicModeDialogProps> = ({
               <div className="text-amber-500 mt-0.5">🔔</div>
               <div>
                 <p className="font-medium text-sm text-amber-700 dark:text-amber-300">
-                  Alarm will play when target is completed
+                  Continuous alarm when target is completed
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                  Automatic exit on completion
+                  Alarm will ring until you manually stop it
                 </p>
               </div>
             </div>
