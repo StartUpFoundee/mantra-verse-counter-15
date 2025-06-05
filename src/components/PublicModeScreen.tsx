@@ -247,7 +247,6 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         WebkitUserModify: 'read-only',
         WebkitTextSizeAdjust: 'none',
         // Prevent any visual feedback
-        WebkitFocusRingColor: 'transparent',
         boxShadow: 'none',
         textShadow: 'none',
         filter: 'none',
