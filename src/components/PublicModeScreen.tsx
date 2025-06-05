@@ -33,24 +33,25 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
     requestWakeLock();
 
-    // Enhanced fullscreen implementation to completely hide all UI
+    // Enhanced fullscreen implementation
     const enterFullscreen = async () => {
       try {
-        // Hide address bar and system UI first
+        // Hide address bar first
         window.scrollTo(0, 1);
         
-        // Request fullscreen on document element
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen();
-        } else if ((document.documentElement as any).webkitRequestFullscreen) {
-          await (document.documentElement as any).webkitRequestFullscreen();
-        } else if ((document.documentElement as any).mozRequestFullScreen) {
-          await (document.documentElement as any).mozRequestFullScreen();
-        } else if ((document.documentElement as any).msRequestFullscreen) {
-          await (document.documentElement as any).msRequestFullscreen();
+        // Request fullscreen
+        const element = document.documentElement;
+        if (element.requestFullscreen) {
+          await element.requestFullscreen();
+        } else if ((element as any).webkitRequestFullscreen) {
+          await (element as any).webkitRequestFullscreen();
+        } else if ((element as any).mozRequestFullScreen) {
+          await (element as any).mozRequestFullScreen();
+        } else if ((element as any).msRequestFullscreen) {
+          await (element as any).msRequestFullscreen();
         }
 
-        // Additional mobile-specific fullscreen handling
+        // Lock orientation if possible
         if ((screen as any).orientation && (screen as any).orientation.lock) {
           try {
             await (screen as any).orientation.lock('portrait');
@@ -59,11 +60,19 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
           }
         }
 
-        // Force viewport to remove any system UI
-        const metaViewport = document.querySelector('meta[name="viewport"]');
-        if (metaViewport) {
-          metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
+        // Update viewport meta tag
+        let metaViewport = document.querySelector('meta[name="viewport"]');
+        if (!metaViewport) {
+          metaViewport = document.createElement('meta');
+          metaViewport.setAttribute('name', 'viewport');
+          document.head.appendChild(metaViewport);
         }
+        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui');
+
+        // Hide browser UI completely
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
       } catch (error) {
         console.error('Failed to enter fullscreen:', error);
       }
@@ -71,10 +80,9 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
     enterFullscreen();
 
-    // Power button exit detection - listen for visibility change
+    // Power button exit detection
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // User pressed power button to turn screen back on
         console.log('Screen turned back on - exiting public mode');
         onExit();
       }
@@ -94,10 +102,9 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
       }, INACTIVITY_TIMEOUT);
     };
 
-    // Start the inactivity timer
     resetInactivityTimer();
 
-    // Cleanup on unmount
+    // Cleanup
     return () => {
       if (wakeLockRef.current) {
         wakeLockRef.current.release();
@@ -125,24 +132,24 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         (document as any).msExitFullscreen();
       }
 
-      // Restore viewport
+      // Restore viewport and body styles
       const metaViewport = document.querySelector('meta[name="viewport"]');
       if (metaViewport) {
         metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
       }
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [onExit]);
 
   const triggerVibration = () => {
-    // Clear any existing vibration timeout
     if (vibrationTimeoutRef.current) {
       clearTimeout(vibrationTimeoutRef.current);
     }
 
-    // Provide haptic feedback with timeout to prevent interference
     if ('vibrate' in navigator) {
       vibrationTimeoutRef.current = setTimeout(() => {
-        navigator.vibrate(100); // Short vibration to confirm count
+        navigator.vibrate(100);
         console.log('Vibration triggered for count increment');
       }, 10);
     }
@@ -177,29 +184,23 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
   const handleTap = () => {
     const currentTime = Date.now();
-    
-    // Handle double tap for counting only
     const timeSinceLastTap = currentTime - lastTapTime;
     
     if (timeSinceLastTap <= 500 && timeSinceLastTap >= 100) {
-      // Valid double tap for counting
+      // Valid double tap
       console.log('Valid double tap detected - incrementing count');
       onIncrement();
-      
-      // Provide haptic feedback to confirm count
       triggerVibration();
-      
-      // Reset tap tracking for counting
       setLastTapTime(0);
     } else if (timeSinceLastTap >= 300) {
-      // First tap of potential double tap
+      // First tap
       setLastTapTime(currentTime);
     }
   };
 
   return (
     <div 
-      className="fixed inset-0 w-full h-full cursor-none select-none"
+      className="fixed inset-0 w-screen h-screen cursor-none select-none bg-black"
       onTouchStart={handleTouch}
       onClick={handleClick}
       style={{
@@ -220,40 +221,47 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         WebkitTouchCallout: 'none',
         WebkitTapHighlightColor: 'transparent',
         overflow: 'hidden',
-        // Enhanced CSS to remove any possible UI elements
         WebkitAppearance: 'none',
         border: 'none',
         outline: 'none',
         margin: 0,
         padding: 0,
-        // Ensure complete coverage including notch areas and status bars
-        paddingTop: 'max(env(safe-area-inset-top, 0px), 0px)',
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)',
-        paddingLeft: 'max(env(safe-area-inset-left, 0px), 0px)',
-        paddingRight: 'max(env(safe-area-inset-right, 0px), 0px)',
-        // Additional properties to ensure pure black
         background: '#000000 !important',
         color: 'transparent',
-        // Prevent any scrolling or zooming
         WebkitOverflowScrolling: 'touch',
-        // Lock the interface completely
         pointerEvents: 'auto',
-        // Ensure no content bleeds through
         isolation: 'isolate',
         contain: 'layout style paint',
         willChange: 'transform',
         transform: 'translateZ(0)',
-        // Additional mobile-specific properties
         WebkitUserModify: 'read-only',
         WebkitTextSizeAdjust: 'none',
-        // Prevent any visual feedback
         boxShadow: 'none',
         textShadow: 'none',
         filter: 'none',
-        backdropFilter: 'none'
+        backdropFilter: 'none',
+        // Ensure complete black coverage
+        display: 'block',
+        visibility: 'visible',
+        opacity: 1,
+        // Prevent any content from showing
+        fontSize: 0,
+        lineHeight: 0,
+        // Additional mobile-specific properties
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+        // Disable selection and highlighting
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+        // Disable context menu
+        contextMenu: 'none',
+        // Disable drag
+        WebkitUserDrag: 'none',
+        // Disable callouts
+        WebkitCallout: 'none',
       }}
     >
-      {/* Completely empty - pure black screen that appears off */}
+      {/* Completely empty - pure black screen */}
     </div>
   );
 };
