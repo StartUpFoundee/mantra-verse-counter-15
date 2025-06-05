@@ -273,7 +273,6 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         MozOsxFontSmoothing: 'grayscale',
         MozUserSelect: 'none',
         msUserSelect: 'none',
-        WebkitCallout: 'none',
       }}
     >
       {/* Large Counter Display that fills entire screen */}
