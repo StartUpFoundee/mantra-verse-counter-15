@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 
 interface PublicModeScreenProps {
@@ -10,8 +11,13 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
   onExit,
 }) => {
   const [lastTapTime, setLastTapTime] = useState<number>(0);
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const wakeLockRef = useRef<any>(null);
   const vibrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 10 minutes in milliseconds
+  const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
 
   useEffect(() => {
     // Keep screen awake
@@ -77,6 +83,21 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // Setup inactivity timer
+    const resetInactivityTimer = () => {
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+      }
+      
+      inactivityTimeoutRef.current = setTimeout(() => {
+        console.log('10 minutes of inactivity - exiting public mode');
+        onExit();
+      }, INACTIVITY_TIMEOUT);
+    };
+
+    // Start the inactivity timer
+    resetInactivityTimer();
+
     // Cleanup on unmount
     return () => {
       if (wakeLockRef.current) {
@@ -86,6 +107,10 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
       
       if (vibrationTimeoutRef.current) {
         clearTimeout(vibrationTimeoutRef.current);
+      }
+
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
       }
       
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -118,38 +143,56 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
     // Provide haptic feedback with timeout to prevent interference
     if ('vibrate' in navigator) {
       vibrationTimeoutRef.current = setTimeout(() => {
-        navigator.vibrate(50); // Very short vibration
-      }, 10); // Small delay to separate from tap detection
+        navigator.vibrate(100); // Short vibration to confirm count
+        console.log('Vibration triggered for count increment');
+      }, 10);
     }
+  };
+
+  const resetInactivityTimer = () => {
+    setLastActivityTime(Date.now());
+    
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+    }
+    
+    inactivityTimeoutRef.current = setTimeout(() => {
+      console.log('10 minutes of inactivity - exiting public mode');
+      onExit();
+    }, INACTIVITY_TIMEOUT);
   };
 
   const handleTouch = (event: React.TouchEvent) => {
     event.preventDefault();
+    event.stopPropagation();
+    resetInactivityTimer();
     handleTap();
   };
 
   const handleClick = (event: React.MouseEvent) => {
     event.preventDefault();
+    event.stopPropagation();
+    resetInactivityTimer();
     handleTap();
   };
 
   const handleTap = () => {
     const currentTime = Date.now();
     
-    // Handle double tap for counting only (no exit logic via taps)
+    // Handle double tap for counting only
     const timeSinceLastTap = currentTime - lastTapTime;
     
-    if (timeSinceLastTap <= 500 && timeSinceLastTap >= 100) { // Double tap within 500ms but at least 100ms apart
+    if (timeSinceLastTap <= 500 && timeSinceLastTap >= 100) {
       // Valid double tap for counting
       console.log('Valid double tap detected - incrementing count');
       onIncrement();
       
-      // Provide haptic feedback - completely separated from any exit logic
+      // Provide haptic feedback to confirm count
       triggerVibration();
       
       // Reset tap tracking for counting
       setLastTapTime(0);
-    } else if (timeSinceLastTap >= 300) { // Debounce - minimum 300ms between potential first taps
+    } else if (timeSinceLastTap >= 300) {
       // First tap of potential double tap
       setLastTapTime(currentTime);
     }
@@ -168,6 +211,8 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         bottom: 0,
         width: '100vw',
         height: '100vh',
+        minHeight: '100vh',
+        maxHeight: '100vh',
         backgroundColor: '#000000',
         zIndex: 999999,
         touchAction: 'none',
@@ -182,17 +227,36 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         outline: 'none',
         margin: 0,
         padding: 0,
-        // Ensure complete coverage including notch areas
-        paddingTop: 'env(safe-area-inset-top, 0)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0)',
-        paddingLeft: 'env(safe-area-inset-left, 0)',
-        paddingRight: 'env(safe-area-inset-right, 0)',
-        // Override any system styles
+        // Ensure complete coverage including notch areas and status bars
+        paddingTop: 'max(env(safe-area-inset-top, 0px), 0px)',
+        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)',
+        paddingLeft: 'max(env(safe-area-inset-left, 0px), 0px)',
+        paddingRight: 'max(env(safe-area-inset-right, 0px), 0px)',
+        // Additional properties to ensure pure black
         background: '#000000 !important',
-        color: 'transparent'
+        color: 'transparent',
+        // Prevent any scrolling or zooming
+        overscroll: 'none',
+        WebkitOverflowScrolling: 'touch',
+        // Lock the interface completely
+        pointerEvents: 'auto',
+        // Ensure no content bleeds through
+        isolation: 'isolate',
+        contain: 'layout style paint',
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+        // Additional mobile-specific properties
+        WebkitUserModify: 'read-only',
+        WebkitTextSizeAdjust: 'none',
+        // Prevent any visual feedback
+        WebkitFocusRingColor: 'transparent',
+        boxShadow: 'none',
+        textShadow: 'none',
+        filter: 'none',
+        backdropFilter: 'none'
       }}
     >
-      {/* Completely black screen - absolutely no content */}
+      {/* Completely empty - pure black screen that appears off */}
     </div>
   );
 };
