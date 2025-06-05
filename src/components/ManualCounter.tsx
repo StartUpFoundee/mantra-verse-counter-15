@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, RotateCcw, Target } from "lucide-react";
+import { Plus, Minus, RotateCcw, Target, Eye } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import TargetSelector from "@/components/TargetSelector";
 import CompletionAlert from "@/components/CompletionAlert";
 import Timer from "@/components/Timer";
 import { getLifetimeCount, getTodayCount, updateMantraCounts } from "@/utils/indexedDBUtils";
 import { recordDailyActivity } from "@/utils/activityUtils";
+import PublicModeDialog from "@/components/PublicModeDialog";
+import PublicModeScreen from "@/components/PublicModeScreen";
 
 const ManualCounter: React.FC = () => {
   const [targetCount, setTargetCount] = useState<number | null>(null);
@@ -17,6 +20,8 @@ const ManualCounter: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [timerMinutes, setTimerMinutes] = useState<number | null>(null);
   const [showTimerComplete, setShowTimerComplete] = useState<boolean>(false);
+  const [showPublicModeDialog, setShowPublicModeDialog] = useState<boolean>(false);
+  const [isPublicMode, setIsPublicMode] = useState<boolean>(false);
 
   // Load saved counts from IndexedDB on component mount
   useEffect(() => {
@@ -46,6 +51,10 @@ const ManualCounter: React.FC = () => {
   }, [currentCount, targetCount]);
 
   const handleCompletion = () => {
+    // If in public mode, exit it first
+    if (isPublicMode) {
+      setIsPublicMode(false);
+    }
     setShowCompletionAlert(true);
   };
 
@@ -79,9 +88,12 @@ const ManualCounter: React.FC = () => {
       // Record daily activity for the calendar
       await recordDailyActivity(1);
       
-      toast.success(`Mantra counted: ${newCount} 🕉️`, {
-        duration: 1000,
-      });
+      // Only show toast if not in public mode
+      if (!isPublicMode) {
+        toast.success(`Mantra counted: ${newCount} 🕉️`, {
+          duration: 1000,
+        });
+      }
     } catch (error) {
       console.error("Error updating counts:", error);
     }
@@ -109,7 +121,26 @@ const ManualCounter: React.FC = () => {
     setTargetCount(null);
   };
 
+  const handleStartPublicMode = () => {
+    setShowPublicModeDialog(false);
+    setIsPublicMode(true);
+  };
+
+  const handleExitPublicMode = () => {
+    setIsPublicMode(false);
+  };
+
   const progressPercentage = targetCount ? (currentCount / targetCount) * 100 : 0;
+
+  // Show public mode screen if active
+  if (isPublicMode) {
+    return (
+      <PublicModeScreen
+        onIncrement={handleIncrement}
+        onExit={handleExitPublicMode}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -218,20 +249,37 @@ const ManualCounter: React.FC = () => {
         </p>
       </div>
       
-      {/* Change Target Button - Mobile Responsive */}
-      <Button 
-        variant="outline" 
-        className="bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-600 backdrop-blur-sm h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-        onClick={handleReset}
-      >
-        <Target className="w-4 h-4 mr-2" />
-        Change Target
-      </Button>
+      {/* Control Buttons Row - Mobile Responsive */}
+      <div className="flex gap-3 lg:gap-4 mb-4">
+        <Button 
+          variant="outline" 
+          className="bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-600 backdrop-blur-sm h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          onClick={handleReset}
+        >
+          <Target className="w-4 h-4 mr-2" />
+          Change Target
+        </Button>
+
+        <Button 
+          variant="outline" 
+          className="bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-purple-600 dark:text-purple-400 border-purple-300 dark:border-purple-600 backdrop-blur-sm h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          onClick={() => setShowPublicModeDialog(true)}
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Public Mode
+        </Button>
+      </div>
 
       <CompletionAlert 
         isOpen={showCompletionAlert} 
         targetCount={targetCount} 
         onClose={() => setShowCompletionAlert(false)} 
+      />
+
+      <PublicModeDialog
+        isOpen={showPublicModeDialog}
+        onClose={() => setShowPublicModeDialog(false)}
+        onStart={handleStartPublicMode}
       />
 
       {showTimerComplete && (
