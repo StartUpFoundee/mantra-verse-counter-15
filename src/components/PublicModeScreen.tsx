@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 
 interface PublicModeScreenProps {
@@ -236,7 +235,6 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         background: '#000000 !important',
         color: 'transparent',
         // Prevent any scrolling or zooming
-        overscroll: 'none',
         WebkitOverflowScrolling: 'touch',
         // Lock the interface completely
         pointerEvents: 'auto',
