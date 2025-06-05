@@ -138,6 +138,7 @@ const ManualCounter: React.FC = () => {
       <PublicModeScreen
         onIncrement={handleIncrement}
         onExit={handleExitPublicMode}
+        currentCount={currentCount}
       />
     );
   }

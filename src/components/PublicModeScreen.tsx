@@ -1,19 +1,23 @@
+
 import React, { useEffect, useRef, useState } from "react";
 
 interface PublicModeScreenProps {
   onIncrement: () => void;
   onExit: () => void;
+  currentCount: number;
 }
 
 const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
   onIncrement,
   onExit,
+  currentCount,
 }) => {
   const [lastTapTime, setLastTapTime] = useState<number>(0);
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const wakeLockRef = useRef<any>(null);
   const vibrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showCounter, setShowCounter] = useState(false);
 
   // 10 minutes in milliseconds
   const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
@@ -33,7 +37,7 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
     requestWakeLock();
 
-    // Enhanced fullscreen implementation
+    // Enhanced fullscreen implementation with better locking
     const enterFullscreen = async () => {
       try {
         // Hide address bar first
@@ -60,7 +64,7 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
           }
         }
 
-        // Update viewport meta tag
+        // Update viewport meta tag for maximum immersion
         let metaViewport = document.querySelector('meta[name="viewport"]');
         if (!metaViewport) {
           metaViewport = document.createElement('meta');
@@ -72,6 +76,11 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         // Hide browser UI completely
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
+        
+        // Disable context menu and selection globally
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('selectstart', (e) => e.preventDefault());
+        document.addEventListener('dragstart', (e) => e.preventDefault());
         
       } catch (error) {
         console.error('Failed to enter fullscreen:', error);
@@ -88,7 +97,16 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
       }
     };
 
+    // Prevent keyboard shortcuts and system interactions
+    const preventSystemInteractions = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('keydown', preventSystemInteractions);
+    document.addEventListener('keyup', preventSystemInteractions);
 
     // Setup inactivity timer
     const resetInactivityTimer = () => {
@@ -120,6 +138,8 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
       }
       
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('keydown', preventSystemInteractions);
+      document.removeEventListener('keyup', preventSystemInteractions);
       
       // Exit fullscreen
       if (document.exitFullscreen) {
@@ -149,7 +169,8 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
     if ('vibrate' in navigator) {
       vibrationTimeoutRef.current = setTimeout(() => {
-        navigator.vibrate(100);
+        // Strong vibration pattern for feedback
+        navigator.vibrate([200, 100, 200]);
         console.log('Vibration triggered for count increment');
       }, 10);
     }
@@ -191,6 +212,11 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
       console.log('Valid double tap detected - incrementing count');
       onIncrement();
       triggerVibration();
+      
+      // Show counter briefly
+      setShowCounter(true);
+      setTimeout(() => setShowCounter(false), 1500);
+      
       setLastTapTime(0);
     } else if (timeSinceLastTap >= 300) {
       // First tap
@@ -200,7 +226,7 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 w-screen h-screen cursor-none select-none bg-black"
+      className="fixed inset-0 w-screen h-screen cursor-none select-none bg-black flex items-center justify-center"
       onTouchStart={handleTouch}
       onClick={handleClick}
       style={{
@@ -227,7 +253,6 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         margin: 0,
         padding: 0,
         background: '#000000 !important',
-        color: 'transparent',
         WebkitOverflowScrolling: 'touch',
         pointerEvents: 'auto',
         isolation: 'isolate',
@@ -240,28 +265,35 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         textShadow: 'none',
         filter: 'none',
         backdropFilter: 'none',
-        // Ensure complete black coverage
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         visibility: 'visible',
         opacity: 1,
-        // Prevent any content from showing
-        fontSize: 0,
-        lineHeight: 0,
-        // Additional mobile-specific properties
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
-        // Disable selection and highlighting
         MozUserSelect: 'none',
         msUserSelect: 'none',
-        // Disable context menu
         contextMenu: 'none',
-        // Disable drag
         WebkitUserDrag: 'none',
-        // Disable callouts
         WebkitCallout: 'none',
       }}
     >
-      {/* Completely empty - pure black screen */}
+      {/* Large Counter Display */}
+      <div 
+        className={`transition-opacity duration-500 ${showCounter ? 'opacity-100' : 'opacity-20'}`}
+        style={{
+          color: '#333333',
+          fontSize: '8rem',
+          fontWeight: 'bold',
+          fontFamily: 'monospace',
+          textAlign: 'center',
+          lineHeight: 1,
+          textShadow: '0 0 20px rgba(255,255,255,0.1)',
+        }}
+      >
+        {currentCount}
+      </div>
     </div>
   );
 };
