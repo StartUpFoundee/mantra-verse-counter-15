@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 
 interface PublicModeScreenProps {
@@ -274,7 +273,6 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         MozOsxFontSmoothing: 'grayscale',
         MozUserSelect: 'none',
         msUserSelect: 'none',
-        WebkitUserDrag: 'none',
         WebkitCallout: 'none',
       }}
     >
