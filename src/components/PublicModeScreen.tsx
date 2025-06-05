@@ -169,9 +169,9 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
 
     if ('vibrate' in navigator) {
       vibrationTimeoutRef.current = setTimeout(() => {
-        // Strong vibration pattern for feedback
-        navigator.vibrate([200, 100, 200]);
-        console.log('Vibration triggered for count increment');
+        // Enhanced vibration pattern for better feedback
+        navigator.vibrate([300, 100, 300, 100, 300]);
+        console.log('Enhanced vibration triggered for count increment');
       }, 10);
     }
   };
@@ -274,22 +274,26 @@ const PublicModeScreen: React.FC<PublicModeScreenProps> = ({
         MozOsxFontSmoothing: 'grayscale',
         MozUserSelect: 'none',
         msUserSelect: 'none',
-        contextMenu: 'none',
         WebkitUserDrag: 'none',
         WebkitCallout: 'none',
       }}
     >
-      {/* Large Counter Display */}
+      {/* Large Counter Display that fills entire screen */}
       <div 
-        className={`transition-opacity duration-500 ${showCounter ? 'opacity-100' : 'opacity-20'}`}
+        className={`transition-opacity duration-300 w-full h-full flex items-center justify-center ${showCounter ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          color: '#333333',
-          fontSize: '8rem',
+          color: '#ffffff',
+          fontSize: 'min(25vw, 25vh)',
           fontWeight: 'bold',
           fontFamily: 'monospace',
           textAlign: 'center',
           lineHeight: 1,
-          textShadow: '0 0 20px rgba(255,255,255,0.1)',
+          textShadow: '0 0 30px rgba(255,255,255,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          height: '100%',
         }}
       >
         {currentCount}
