@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, Pause, Play, Square } from "lucide-react";
@@ -106,35 +107,35 @@ const Timer: React.FC<TimerProps> = ({
 
   return (
     <>
-      <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-white/80 to-amber-50/80 dark:from-zinc-800/80 dark:to-zinc-900/80 backdrop-blur-sm border border-amber-200 dark:border-zinc-700 rounded-xl shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
-            <Clock className="w-4 h-4 text-white" />
+      <div className="flex flex-col items-center gap-3 p-4 bg-gradient-to-br from-white/80 to-amber-50/80 dark:from-zinc-800/80 dark:to-zinc-900/80 backdrop-blur-sm border border-amber-200 dark:border-zinc-700 rounded-lg shadow-lg">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
+            <Clock className="w-3 h-3 text-white" />
           </div>
-          <span className="text-amber-600 dark:text-amber-400 font-semibold text-lg">Meditation Timer</span>
+          <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm">Meditation Timer</span>
         </div>
         
-        <div className="relative w-32 h-32">
+        <div className="relative w-20 h-20 md:w-24 md:h-24">
           {/* Background circle */}
-          <div className="absolute inset-0 w-32 h-32 rounded-full border-4 border-amber-200 dark:border-zinc-600"></div>
+          <div className="absolute inset-0 w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-amber-200 dark:border-zinc-600"></div>
           {/* Progress circle */}
-          <svg className="absolute inset-0 w-32 h-32 transform -rotate-90" viewBox="0 0 128 128">
+          <svg className="absolute inset-0 w-20 h-20 md:w-24 md:h-24 transform -rotate-90" viewBox="0 0 96 96">
             <circle
-              cx="64"
-              cy="64"
-              r="60"
+              cx="48"
+              cy="48"
+              r="44"
               fill="none"
               stroke="currentColor"
               strokeWidth="4"
               strokeLinecap="round"
               className="text-amber-500 transition-all duration-1000"
-              strokeDasharray={`${progress * 3.77} 377`}
+              strokeDasharray={`${progress * 2.76} 276`}
             />
           </svg>
           {/* Time display */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 font-mono">
+              <div className="text-base md:text-lg font-bold text-amber-600 dark:text-amber-400 font-mono">
                 {formatTime(timeLeft)}
               </div>
               <div className="text-xs text-amber-500 dark:text-amber-500 mt-1">
@@ -144,11 +145,11 @@ const Timer: React.FC<TimerProps> = ({
           </div>
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button
             onClick={toggleTimer}
             size="sm"
-            className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${
+            className={`flex items-center gap-1 px-3 py-1 rounded-full font-medium transition-all text-xs ${
               isRunning 
                 ? 'bg-red-500 hover:bg-red-600 text-white' 
                 : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg'
@@ -156,12 +157,12 @@ const Timer: React.FC<TimerProps> = ({
           >
             {isRunning ? (
               <>
-                <Pause className="w-4 h-4" />
+                <Pause className="w-3 h-3" />
                 Pause
               </>
             ) : (
               <>
-                <Play className="w-4 h-4" />
+                <Play className="w-3 h-3" />
                 Start
               </>
             )}
@@ -171,19 +172,19 @@ const Timer: React.FC<TimerProps> = ({
             onClick={onReset}
             size="sm"
             variant="outline"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 dark:bg-zinc-800/60 hover:bg-white dark:hover:bg-zinc-700 border-amber-300 dark:border-amber-600 text-amber-600 dark:text-amber-400"
+            className="flex items-center gap-1 px-3 py-1 rounded-full bg-white/60 dark:bg-zinc-800/60 hover:bg-white dark:hover:bg-zinc-700 border-amber-300 dark:border-amber-600 text-amber-600 dark:text-amber-400 text-xs"
           >
-            <Square className="w-4 h-4" />
+            <Square className="w-3 h-3" />
             Stop
           </Button>
         </div>
         
         <div className="text-center">
-          <p className="text-sm text-amber-600 dark:text-amber-400">
-            {initialMinutes} minute meditation session
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            {initialMinutes} minute session
           </p>
           <p className="text-xs text-amber-500 dark:text-amber-500 mt-1">
-            Click start when ready to begin
+            Click start when ready
           </p>
         </div>
       </div>

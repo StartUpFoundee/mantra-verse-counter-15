@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import * as Tone from 'tone';
@@ -337,47 +336,47 @@ const AlarmSystem: React.FC<AlarmSystemProps> = ({
   const currentSong = ALARM_SONGS.find(s => s.id === settings.selectedSong);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-amber-500/95 to-orange-600/95 backdrop-blur-sm">
-      <div className="w-full max-w-sm mx-4">
-        {/* Bell Icon with Vibrating Ring */}
-        <div className="text-center mb-8 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-amber-500/95 to-orange-600/95 backdrop-blur-sm p-4">
+      <div className="w-full max-w-sm mx-auto">
+        {/* Compact Bell Icon with Vibrating Ring */}
+        <div className="text-center mb-6 relative">
           {/* Vibrating Ring Animation */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-40 h-40 border-4 border-white/30 rounded-full animate-ping"></div>
-            <div className="absolute w-36 h-36 border-2 border-white/20 rounded-full animate-pulse"></div>
-            <div className="absolute w-32 h-32 border border-white/10 rounded-full animate-bounce"></div>
+            <div className="w-24 h-24 md:w-32 md:h-32 border-4 border-white/30 rounded-full animate-ping"></div>
+            <div className="absolute w-20 h-20 md:w-28 md:h-28 border-2 border-white/20 rounded-full animate-pulse"></div>
+            <div className="absolute w-16 h-16 md:w-24 md:h-24 border border-white/10 rounded-full animate-bounce"></div>
           </div>
           
-          <div className="relative w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-amber-400/30 to-orange-500/30 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-2xl">
-            <Bell className="w-16 h-16 text-white animate-pulse" />
+          <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-4 bg-gradient-to-br from-amber-400/30 to-orange-500/30 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-2xl">
+            <Bell className="w-10 h-10 md:w-12 md:h-12 text-white animate-pulse" />
           </div>
         </div>
 
-        {/* Main Card */}
-        <div className="bg-white/15 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-2xl">
+        {/* Compact Main Card */}
+        <div className="bg-white/15 backdrop-blur-lg rounded-xl p-4 border border-white/30 shadow-2xl">
           {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">TARGET COMPLETED!</h1>
-            <p className="text-xl text-white/95 font-semibold">{completedCount} / {targetCount}</p>
-            <p className="text-white/90 mt-2 text-lg">Om Shanti, Shanti, Shanti</p>
+          <div className="text-center mb-4">
+            <h1 className="text-xl md:text-2xl font-bold text-white mb-2 drop-shadow-lg">TARGET COMPLETED!</h1>
+            <p className="text-lg md:text-xl text-white/95 font-semibold">{completedCount} / {targetCount}</p>
+            <p className="text-white/90 mt-1 text-base md:text-lg">Om Shanti, Shanti, Shanti</p>
           </div>
 
           {/* Current Status */}
-          <div className="text-center mb-6 p-4 bg-black/30 rounded-xl border border-white/20">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              {isPlaying ? <Play className="w-5 h-5 text-green-400" /> : <Pause className="w-5 h-5 text-white/60" />}
-              <span className="text-white font-medium">
+          <div className="text-center mb-4 p-3 bg-black/30 rounded-lg border border-white/20">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              {isPlaying ? <Play className="w-4 h-4 text-green-400" /> : <Pause className="w-4 h-4 text-white/60" />}
+              <span className="text-white font-medium text-sm">
                 {isPlaying ? 'Playing' : 'Paused'} - {currentSong?.name}
               </span>
             </div>
-            <p className="text-white/80 text-sm">Auto-stop in: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</p>
+            <p className="text-white/80 text-xs">Auto-stop in: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</p>
           </div>
 
           {/* Main Actions */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Button
               onClick={onStop}
-              className="w-full h-14 text-xl font-bold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 rounded-xl shadow-lg transform transition-all hover:scale-105"
+              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 rounded-lg shadow-lg transform transition-all hover:scale-105"
             >
               STOP ALARM
             </Button>
@@ -385,7 +384,7 @@ const AlarmSystem: React.FC<AlarmSystemProps> = ({
             <Button
               onClick={handleSnooze}
               variant="outline"
-              className="w-full h-12 bg-white/20 text-white border-white/40 hover:bg-white/30 rounded-xl backdrop-blur-sm font-semibold"
+              className="w-full h-10 bg-white/20 text-white border-white/40 hover:bg-white/30 rounded-lg backdrop-blur-sm font-semibold text-sm"
             >
               Snooze (1 minute)
             </Button>
@@ -393,9 +392,9 @@ const AlarmSystem: React.FC<AlarmSystemProps> = ({
         </div>
 
         {/* Bottom Message */}
-        <div className="text-center mt-6">
-          <p className="text-white/95 text-base font-medium drop-shadow-lg">🙏 Congratulations on completing your spiritual practice!</p>
-          <p className="text-white/80 text-sm mt-2">आपने अपना आध्यात्मिक अभ्यास पूरा किया है!</p>
+        <div className="text-center mt-4">
+          <p className="text-white/95 text-sm md:text-base font-medium drop-shadow-lg">🙏 Congratulations on completing your spiritual practice!</p>
+          <p className="text-white/80 text-xs md:text-sm mt-1">आपने अपना आध्यात्मिक अभ्यास पूरा किया है!</p>
         </div>
       </div>
     </div>

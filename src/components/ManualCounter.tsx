@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, RotateCcw, Target, Eye, Volume2 } from "lucide-react";
@@ -275,9 +274,9 @@ const ManualCounter: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto px-4 py-12">
-        <div className="text-amber-400 text-lg mb-4">Loading your spiritual journey...</div>
-        <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto px-4 py-8">
+        <div className="text-amber-400 text-base mb-3">Loading your spiritual journey...</div>
+        <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -291,10 +290,10 @@ const ManualCounter: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md mx-auto px-4 min-h-[calc(100vh-200px)] justify-center">
-      {/* Timer Section - Mobile Optimized */}
+    <div className="flex flex-col items-center w-full max-w-md mx-auto px-3 min-h-[calc(100vh-120px)] justify-center">
+      {/* Timer Section - Compact Mobile */}
       {timerMinutes && (
-        <div className="mb-4 lg:mb-6 w-full">
+        <div className="mb-3 w-full">
           <Timer 
             initialMinutes={timerMinutes}
             onTimerComplete={handleTimerComplete}
@@ -304,145 +303,145 @@ const ManualCounter: React.FC = () => {
         </div>
       )}
 
-      {/* Progress Section - Mobile Responsive */}
-      <div className="mb-4 lg:mb-6 text-center w-full">
-        <div className="text-amber-400 text-2xl lg:text-3xl xl:text-4xl mb-2 font-bold">
+      {/* Progress Section - Compact */}
+      <div className="mb-3 text-center w-full">
+        <div className="text-amber-400 text-xl md:text-2xl lg:text-3xl mb-1 font-bold">
           {currentCount} / {targetCount}
         </div>
-        <div className="text-sm lg:text-base text-gray-400 font-medium">
+        <div className="text-xs md:text-sm text-gray-400 font-medium">
           {Math.round(progressPercentage)}% complete
         </div>
       </div>
       
-      {/* Stats Cards - Mobile Responsive Grid */}
-      <div className="stats w-full flex gap-3 lg:gap-4 mb-6 lg:mb-8">
-        <div className="stat flex-1 bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 lg:p-4 text-center shadow-lg">
-          <h3 className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 font-medium">Lifetime</h3>
-          <p className="text-lg lg:text-xl xl:text-2xl font-bold text-amber-600 dark:text-amber-400">
+      {/* Stats Cards - Compact Mobile */}
+      <div className="stats w-full flex gap-2 mb-4">
+        <div className="stat flex-1 bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm rounded-lg p-2 text-center shadow-lg">
+          <h3 className="text-xs text-gray-500 dark:text-gray-400 font-medium">Lifetime</h3>
+          <p className="text-base md:text-lg font-bold text-amber-600 dark:text-amber-400">
             {lifetimeCount}
           </p>
         </div>
         
-        <div className="stat flex-1 bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 lg:p-4 text-center shadow-lg">
-          <h3 className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 font-medium">Today</h3>
-          <p className="text-lg lg:text-xl xl:text-2xl font-bold text-amber-600 dark:text-amber-400">
+        <div className="stat flex-1 bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm rounded-lg p-2 text-center shadow-lg">
+          <h3 className="text-xs text-gray-500 dark:text-gray-400 font-medium">Today</h3>
+          <p className="text-base md:text-lg font-bold text-amber-600 dark:text-amber-400">
             {todayCount}
           </p>
         </div>
       </div>
       
-      {/* Counter Display - Mobile Optimized with Volume Button Indicator */}
-      <div className="counter-display relative mb-8 lg:mb-10">
-        <div className={`w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl hover:shadow-3xl transition-all duration-300 ${
+      {/* Counter Display - More Compact */}
+      <div className="counter-display relative mb-6">
+        <div className={`w-36 h-36 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 ${
           volumeButtonDetected ? 'ring-4 ring-green-400 ring-opacity-75 animate-pulse scale-105' : ''
         }`}>
           <div className="text-white text-center">
-            <div className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl mb-2 lg:mb-3">ॐ</div>
-            <div className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold">{currentCount}</div>
+            <div className="text-2xl md:text-3xl mb-1">ॐ</div>
+            <div className="text-2xl md:text-3xl font-bold">{currentCount}</div>
           </div>
         </div>
         
         {/* Enhanced Volume Button Detection Indicator */}
         {volumeButtonDetected && (
-          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-sm px-4 py-2 rounded-full animate-bounce shadow-lg border-2 border-green-300">
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-3 py-1 rounded-full animate-bounce shadow-lg border-2 border-green-300">
             📱 Volume → +1!
           </div>
         )}
         
         {/* Volume Button Status Indicator */}
         {volumeButtonEnabled && !volumeButtonDetected && (
-          <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full opacity-75">
-            📱 Ready
+          <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full opacity-75">
+            📱
           </div>
         )}
       </div>
       
-      {/* Control Buttons - Mobile Responsive Layout */}
-      <div className="flex items-center justify-center gap-4 lg:gap-6 mb-6 lg:mb-8">
+      {/* Control Buttons - Compact Layout */}
+      <div className="flex items-center justify-center gap-3 mb-4">
         <Button
           onClick={handleDecrement}
           variant="outline"
           size="icon"
-          className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 border-2 border-orange-300 dark:border-orange-600 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 border-2 border-orange-300 dark:border-orange-600 shadow-lg hover:shadow-xl transition-all duration-200"
           disabled={currentCount === 0}
         >
-          <Minus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-orange-600 dark:text-orange-400" />
+          <Minus className="w-4 h-4 md:w-5 md:h-5 text-orange-600 dark:text-orange-400" />
         </Button>
         
         <Button
           onClick={handleIncrement}
-          className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-2xl transform hover:scale-105 transition-all duration-200"
+          className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-xl transform hover:scale-105 transition-all duration-200"
         >
-          <Plus className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
+          <Plus className="w-5 h-5 md:w-6 md:h-6" />
         </Button>
         
         <Button
           onClick={resetCounter}
           variant="outline"
           size="icon"
-          className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 border-2 border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 border-2 border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-gray-600 dark:text-gray-400" />
+          <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400" />
         </Button>
       </div>
       
-      {/* Enhanced Instructions - Mobile Responsive Text */}
-      <div className="text-center mb-4 lg:mb-6 px-2">
-        <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base lg:text-lg font-medium">
-          🙏 Tap + button or press volume buttons to count
+      {/* Compact Instructions */}
+      <div className="text-center mb-3 px-2">
+        <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">
+          🙏 Tap + or press volume buttons
         </p>
-        <p className="text-amber-600 dark:text-amber-400 text-xs sm:text-sm lg:text-base mt-1 font-medium">
+        <p className="text-amber-600 dark:text-amber-400 text-xs mt-1 font-medium">
           + बटन दबाएं या वॉल्यूम बटन दबाएं
         </p>
         {volumeButtonEnabled && (
-          <div className="mt-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full inline-block">
+          <div className="mt-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-full inline-block">
             <p className="text-green-700 dark:text-green-400 text-xs font-medium">
-              📱 Volume buttons active - Press volume up/down to increment counter
+              📱 Volume buttons active
             </p>
           </div>
         )}
       </div>
       
-      {/* Control Buttons Row - Mobile Responsive */}
-      <div className="flex gap-3 lg:gap-4 mb-4">
+      {/* Control Buttons Row - Compact */}
+      <div className="flex gap-2 mb-3">
         <Button 
           variant="outline" 
-          className="bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-600 backdrop-blur-sm h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          className="bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-600 backdrop-blur-sm h-8 px-3 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-200"
           onClick={handleReset}
         >
-          <Target className="w-4 h-4 mr-2" />
+          <Target className="w-3 h-3 mr-1" />
           Change Target
         </Button>
 
         <Button 
           variant="outline" 
-          className="bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-purple-600 dark:text-purple-400 border-purple-300 dark:border-purple-600 backdrop-blur-sm h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          className="bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-purple-600 dark:text-purple-400 border-purple-300 dark:border-purple-600 backdrop-blur-sm h-8 px-3 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-200"
           onClick={() => setShowPublicModeDialog(true)}
         >
-          <Eye className="w-4 h-4 mr-2" />
+          <Eye className="w-3 h-3 mr-1" />
           Public Mode
         </Button>
       </div>
 
-      {/* Enhanced Volume Button Controls */}
-      <div className="flex gap-2 mb-4">
+      {/* Volume Button Controls - Compact */}
+      <div className="flex gap-2 mb-3">
         <Button 
           variant={volumeButtonEnabled ? "default" : "outline"}
-          className={`h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 ${
+          className={`h-8 px-3 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-200 ${
             volumeButtonEnabled 
               ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white' 
               : 'bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600'
           }`}
           onClick={toggleVolumeButton}
         >
-          <Volume2 className="w-4 h-4 mr-2" />
+          <Volume2 className="w-3 h-3 mr-1" />
           Volume {volumeButtonEnabled ? 'ON' : 'OFF'}
         </Button>
 
         {volumeButtonEnabled && (
           <Button 
             variant="outline"
-            className="h-10 lg:h-12 px-3 lg:px-4 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-600"
+            className="h-8 px-2 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-600"
             onClick={testVolumeButton}
           >
             Test +1
