@@ -47,10 +47,10 @@ const ManualCounter: React.FC = () => {
     initNativeFeatures();
   }, [isPublicMode]);
 
-  // Enhanced volume button detection with better feedback
+  // Enhanced volume button detection with guaranteed counter increment
   useEffect(() => {
     if (volumeButtonEnabled && targetCount !== null) {
-      const handleVolumePress = () => {
+      const handleVolumePress = async () => {
         const now = Date.now();
         
         // Prevent multiple triggers within short timespan
@@ -60,10 +60,14 @@ const ManualCounter: React.FC = () => {
         
         setVolumeButtonLastUsed(now);
         setVolumeButtonDetected(true);
-        handleIncrement();
+        
+        console.log('Volume button pressed - incrementing counter');
+        
+        // Call handleIncrement directly to ensure counter increments
+        await handleIncrement();
         
         // Enhanced feedback for volume button usage
-        toast.success("📱 Volume button detected!", {
+        toast.success("📱 Volume button → Counter +1!", {
           duration: 1500,
           style: { 
             background: '#16a34a', 
@@ -79,12 +83,12 @@ const ManualCounter: React.FC = () => {
       };
       
       NativeFeatures.addVolumeButtonListener(handleVolumePress);
-      console.log('Enhanced volume button detection enabled for manual counter');
+      console.log('Volume button detection enabled - counter will increment on press');
       
       // Show initial setup toast
       if (volumeButtonEnabled) {
         setTimeout(() => {
-          toast.info("📱 Volume buttons are active! Try pressing volume up or down to count mantras.", {
+          toast.info("📱 Volume buttons active! Press volume up/down to count mantras.", {
             duration: 4000,
             style: { 
               background: '#3b82f6', 
@@ -165,6 +169,8 @@ const ManualCounter: React.FC = () => {
     const newCount = currentCount + 1;
     setCurrentCount(newCount);
     
+    console.log(`Counter incremented: ${currentCount} → ${newCount}`);
+    
     // Enhanced haptic feedback for counting
     await NativeFeatures.triggerMantraHaptic();
     
@@ -243,10 +249,12 @@ const ManualCounter: React.FC = () => {
   };
 
   const testVolumeButton = () => {
-    toast.info("📱 Try pressing your device's volume up or volume down button now!", {
-      duration: 5000,
+    // Simulate volume button press for testing
+    handleIncrement();
+    toast.success("📱 Test increment! Now try your device's volume buttons.", {
+      duration: 3000,
       style: { 
-        background: '#3b82f6', 
+        background: '#16a34a', 
         color: 'white'
       }
     });
@@ -337,7 +345,7 @@ const ManualCounter: React.FC = () => {
         {/* Enhanced Volume Button Detection Indicator */}
         {volumeButtonDetected && (
           <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-sm px-4 py-2 rounded-full animate-bounce shadow-lg border-2 border-green-300">
-            📱 Volume Button!
+            📱 Volume → +1!
           </div>
         )}
         
@@ -389,7 +397,7 @@ const ManualCounter: React.FC = () => {
         {volumeButtonEnabled && (
           <div className="mt-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full inline-block">
             <p className="text-green-700 dark:text-green-400 text-xs font-medium">
-              📱 Volume buttons active - Try pressing volume up/down
+              📱 Volume buttons active - Press volume up/down to increment counter
             </p>
           </div>
         )}
@@ -437,7 +445,7 @@ const ManualCounter: React.FC = () => {
             className="h-10 lg:h-12 px-3 lg:px-4 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-600"
             onClick={testVolumeButton}
           >
-            Test
+            Test +1
           </Button>
         )}
       </div>

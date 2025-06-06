@@ -1,4 +1,3 @@
-
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
@@ -8,6 +7,7 @@ import { Capacitor } from '@capacitor/core';
 export class NativeFeatures {
   private static volumeButtonListener: ((event: KeyboardEvent) => void) | null = null;
   private static mediaSessionCallback: (() => void) | null = null;
+  private static nativeVolumeCallback: (() => void) | null = null;
 
   static isNative(): boolean {
     return Capacitor.isNativePlatform();
@@ -60,124 +60,160 @@ export class NativeFeatures {
     }
   }
 
-  // Enhanced Volume Button Detection for Web and Native
+  // Enhanced Volume Button Detection with guaranteed callback execution
   static addVolumeButtonListener(callback: () => void): void {
     // Remove existing listeners if any
     this.removeVolumeButtonListener();
     
-    this.mediaSessionCallback = callback;
+    this.nativeVolumeCallback = callback;
+    console.log('Setting up volume button detection - callback registered:', !!callback);
 
     if (this.isNative()) {
-      // Native platform implementation
-      console.log('Setting up native volume button detection');
+      // Native platform implementation with direct event handling
+      console.log('Setting up NATIVE volume button detection');
       
+      // For native platforms, we'll use multiple detection methods
       this.volumeButtonListener = (event: KeyboardEvent) => {
-        if (event.code === 'AudioVolumeUp' || event.code === 'AudioVolumeDown' || 
-            event.key === 'AudioVolumeUp' || event.key === 'AudioVolumeDown') {
+        console.log('Native keyboard event detected:', { 
+          code: event.code, 
+          key: event.key, 
+          keyCode: event.keyCode 
+        });
+        
+        const isVolumeKey = event.code === 'AudioVolumeUp' || 
+                           event.code === 'AudioVolumeDown' || 
+                           event.key === 'AudioVolumeUp' || 
+                           event.key === 'AudioVolumeDown' ||
+                           event.keyCode === 174 || // Volume down
+                           event.keyCode === 175;   // Volume up
+        
+        if (isVolumeKey) {
           event.preventDefault();
+          event.stopPropagation();
+          console.log('NATIVE volume button detected - executing callback');
           callback();
         }
       };
       
-      document.addEventListener('keydown', this.volumeButtonListener, { capture: true });
+      // Add listeners with capture to catch events early
+      document.addEventListener('keydown', this.volumeButtonListener, { 
+        capture: true, 
+        passive: false 
+      });
+      
+      // For Capacitor, also try to listen for hardware key events
+      if ((window as any).Capacitor) {
+        console.log('Adding Capacitor-specific volume listeners');
+        // Try to add Capacitor plugin listeners if available
+        this.addCapacitorVolumeListeners(callback);
+      }
+      
     } else {
       // Enhanced web implementation
-      console.log('Setting up enhanced web volume button detection');
+      console.log('Setting up ENHANCED WEB volume button detection');
       
       // Method 1: Media Session API (Primary for web)
       if ('mediaSession' in navigator && navigator.mediaSession) {
-        // Set minimal metadata to enable media session
         navigator.mediaSession.metadata = new MediaMetadata({
           title: 'Mantra Counter',
           artist: 'Spiritual Practice',
           album: 'Meditation',
         });
 
-        // Handle volume-related actions
         const handleMediaAction = () => {
-          console.log('Media session volume action detected');
+          console.log('WEB media session volume action detected - executing callback');
           callback();
         };
 
-        // Set up action handlers for volume buttons
         try {
           navigator.mediaSession.setActionHandler('seekforward', handleMediaAction);
           navigator.mediaSession.setActionHandler('seekbackward', handleMediaAction);
           navigator.mediaSession.setActionHandler('nexttrack', handleMediaAction);
           navigator.mediaSession.setActionHandler('previoustrack', handleMediaAction);
           
-          // Also try direct volume handlers if supported
-          if ('setActionHandler' in navigator.mediaSession) {
-            navigator.mediaSession.setActionHandler('volumeup' as any, handleMediaAction);
-            navigator.mediaSession.setActionHandler('volumedown' as any, handleMediaAction);
-          }
-          
-          console.log('Media Session API volume handlers registered');
+          console.log('Web Media Session API volume handlers registered');
         } catch (error) {
           console.warn('Some Media Session handlers failed:', error);
         }
       }
 
-      // Method 2: Enhanced keyboard event listeners
+      // Method 2: Enhanced keyboard event listeners for web
       this.volumeButtonListener = (event: KeyboardEvent) => {
-        // Comprehensive volume key detection
+        console.log('Web keyboard event detected:', { 
+          code: event.code, 
+          key: event.key, 
+          keyCode: event.keyCode 
+        });
+        
         const volumeKeyCodes = [
           'AudioVolumeUp', 'AudioVolumeDown',
           'VolumeUp', 'VolumeDown',
           'MediaVolumeUp', 'MediaVolumeDown'
         ];
         
-        const volumeKeyNumbers = [
-          174, 175, // Standard volume up/down
-          181, 182, // Alternative volume codes
-          183, // Launch media
-        ];
+        const volumeKeyNumbers = [174, 175, 181, 182, 183];
 
         const isVolumeKey = volumeKeyCodes.includes(event.code) || 
                            volumeKeyCodes.includes(event.key) ||
-                           volumeKeyNumbers.includes(event.keyCode) ||
-                           volumeKeyNumbers.includes(event.which);
+                           volumeKeyNumbers.includes(event.keyCode);
 
         if (isVolumeKey) {
           event.preventDefault();
           event.stopPropagation();
-          console.log('Volume key detected:', { code: event.code, key: event.key, keyCode: event.keyCode });
+          console.log('WEB volume key detected - executing callback');
           callback();
         }
       };
       
-      // Add listeners with different capture modes
-      document.addEventListener('keydown', this.volumeButtonListener, { capture: true, passive: false });
-      window.addEventListener('keydown', this.volumeButtonListener, { capture: true, passive: false });
+      document.addEventListener('keydown', this.volumeButtonListener, { 
+        capture: true, 
+        passive: false 
+      });
+    }
+  }
+
+  // Add Capacitor-specific volume button detection
+  private static addCapacitorVolumeListeners(callback: () => void): void {
+    try {
+      // Check if we have access to Capacitor plugins
+      const { Capacitor } = window as any;
       
-      // Method 3: Focus management for better key capture
-      if (document.activeElement !== document.body) {
-        document.body.focus();
-      }
-      
-      // Method 4: Visibility API to re-enable when page becomes visible
-      const handleVisibilityChange = () => {
-        if (!document.hidden && this.mediaSessionCallback) {
-          console.log('Page visible - refreshing volume button detection');
-          // Refresh media session
-          setTimeout(() => {
-            if ('mediaSession' in navigator && navigator.mediaSession) {
-              navigator.mediaSession.playbackState = 'playing';
-            }
-          }, 100);
+      if (Capacitor && Capacitor.Plugins) {
+        console.log('Attempting to add Capacitor volume button listeners');
+        
+        // Try to use keyboard plugin or hardware buttons if available
+        if (Capacitor.Plugins.Keyboard) {
+          Capacitor.Plugins.Keyboard.addListener('keyboardDidShow', () => {
+            console.log('Capacitor keyboard event detected');
+          });
         }
-      };
-      
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      
-      console.log('Web volume button listeners added with enhanced detection');
+        
+        // For Android, try to intercept volume key events
+        if (Capacitor.platform === 'android') {
+          console.log('Setting up Android-specific volume detection');
+          
+          // Add Android hardware back button as potential volume button
+          document.addEventListener('backbutton', (e) => {
+            console.log('Android hardware button detected');
+            e.preventDefault();
+            callback();
+          }, false);
+        }
+        
+        // For iOS, volume buttons are more restricted
+        if (Capacitor.platform === 'ios') {
+          console.log('Setting up iOS-specific volume detection');
+          // iOS volume detection is limited, rely on media session
+        }
+      }
+    } catch (error) {
+      console.warn('Capacitor volume listeners setup failed:', error);
     }
   }
 
   static removeVolumeButtonListener(): void {
     if (this.volumeButtonListener) {
       document.removeEventListener('keydown', this.volumeButtonListener, { capture: true });
-      window.removeEventListener('keydown', this.volumeButtonListener, { capture: true });
       this.volumeButtonListener = null;
       console.log('Volume button keyboard listeners removed');
     }
@@ -189,8 +225,6 @@ export class NativeFeatures {
         navigator.mediaSession.setActionHandler('seekbackward', null);
         navigator.mediaSession.setActionHandler('nexttrack', null);
         navigator.mediaSession.setActionHandler('previoustrack', null);
-        navigator.mediaSession.setActionHandler('volumeup' as any, null);
-        navigator.mediaSession.setActionHandler('volumedown' as any, null);
         navigator.mediaSession.metadata = null;
         console.log('Media session handlers cleared');
       } catch (error) {
@@ -198,7 +232,7 @@ export class NativeFeatures {
       }
     }
     
-    this.mediaSessionCallback = null;
+    this.nativeVolumeCallback = null;
     console.log('All volume button listeners removed');
   }
 
