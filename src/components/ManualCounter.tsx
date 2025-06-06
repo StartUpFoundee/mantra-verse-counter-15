@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, RotateCcw, Target, Eye } from "lucide-react";
@@ -22,6 +23,7 @@ const ManualCounter: React.FC = () => {
   const [showTimerComplete, setShowTimerComplete] = useState<boolean>(false);
   const [showPublicModeDialog, setShowPublicModeDialog] = useState<boolean>(false);
   const [isPublicMode, setIsPublicMode] = useState<boolean>(false);
+  const [volumeButtonEnabled, setVolumeButtonEnabled] = useState<boolean>(true);
 
   // Initialize native features
   useEffect(() => {
@@ -40,6 +42,20 @@ const ManualCounter: React.FC = () => {
 
     initNativeFeatures();
   }, [isPublicMode]);
+
+  // Volume button detection
+  useEffect(() => {
+    if (volumeButtonEnabled && targetCount !== null) {
+      NativeFeatures.addVolumeButtonListener(handleIncrement);
+      console.log('Volume button detection enabled');
+    } else {
+      NativeFeatures.removeVolumeButtonListener();
+    }
+
+    return () => {
+      NativeFeatures.removeVolumeButtonListener();
+    };
+  }, [volumeButtonEnabled, targetCount]);
 
   // Load saved counts from IndexedDB on component mount
   useEffect(() => {
@@ -158,6 +174,13 @@ const ManualCounter: React.FC = () => {
     setIsPublicMode(false);
   };
 
+  const toggleVolumeButton = () => {
+    setVolumeButtonEnabled(!volumeButtonEnabled);
+    toast.info(`Volume button counting ${!volumeButtonEnabled ? 'enabled' : 'disabled'}`, {
+      duration: 2000,
+    });
+  };
+
   const progressPercentage = targetCount ? (currentCount / targetCount) * 100 : 0;
 
   // Show public mode screen if active
@@ -271,11 +294,18 @@ const ManualCounter: React.FC = () => {
       {/* Instructions - Mobile Responsive Text */}
       <div className="text-center mb-4 lg:mb-6 px-2">
         <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base lg:text-lg font-medium">
-          🙏 Tap the + button for each mantra chanted
+          🙏 Tap + button or press volume buttons to count
         </p>
         <p className="text-amber-600 dark:text-amber-400 text-xs sm:text-sm lg:text-base mt-1 font-medium">
-          प्रत्येक जाप के लिए + बटन दबाएं
+          + बटन दबाएं या वॉल्यूम बटन दबाएं
         </p>
+        {volumeButtonEnabled && (
+          <div className="mt-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full inline-block">
+            <p className="text-green-700 dark:text-green-400 text-xs font-medium">
+              📱 Volume button counting enabled
+            </p>
+          </div>
+        )}
       </div>
       
       {/* Control Buttons Row - Mobile Responsive */}
@@ -296,6 +326,21 @@ const ManualCounter: React.FC = () => {
         >
           <Eye className="w-4 h-4 mr-2" />
           Public Mode
+        </Button>
+      </div>
+
+      {/* Volume Button Toggle */}
+      <div className="mb-4">
+        <Button 
+          variant={volumeButtonEnabled ? "default" : "outline"}
+          className={`h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 ${
+            volumeButtonEnabled 
+              ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white' 
+              : 'bg-white/70 dark:bg-zinc-800/70 hover:bg-white dark:hover:bg-zinc-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600'
+          }`}
+          onClick={toggleVolumeButton}
+        >
+          📱 Volume Button {volumeButtonEnabled ? 'ON' : 'OFF'}
         </Button>
       </div>
 

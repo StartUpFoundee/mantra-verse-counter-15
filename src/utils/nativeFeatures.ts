@@ -1,3 +1,4 @@
+
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
@@ -5,6 +6,8 @@ import { Device } from '@capacitor/device';
 import { Capacitor } from '@capacitor/core';
 
 export class NativeFeatures {
+  private static volumeButtonListener: ((event: KeyboardEvent) => void) | null = null;
+
   static isNative(): boolean {
     return Capacitor.isNativePlatform();
   }
@@ -53,6 +56,68 @@ export class NativeFeatures {
       }, 150);
     } catch (error) {
       console.error('Mantra haptic failed:', error);
+    }
+  }
+
+  // Volume Button Detection
+  static addVolumeButtonListener(callback: () => void): void {
+    // Remove existing listener if any
+    this.removeVolumeButtonListener();
+
+    if (this.isNative()) {
+      // For native platforms, we'll use a combination of approaches
+      console.log('Setting up native volume button detection');
+      
+      // Method 1: Listen for volume key events (Android primarily)
+      this.volumeButtonListener = (event: KeyboardEvent) => {
+        if (event.code === 'AudioVolumeUp' || event.code === 'AudioVolumeDown' || 
+            event.key === 'AudioVolumeUp' || event.key === 'AudioVolumeDown') {
+          event.preventDefault();
+          callback();
+        }
+      };
+      
+      document.addEventListener('keydown', this.volumeButtonListener, { capture: true });
+      
+      // Method 2: Override volume control (web-based fallback)
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+          callback();
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+          callback();
+        });
+      }
+    } else {
+      // Web fallback - listen for volume-related key events
+      this.volumeButtonListener = (event: KeyboardEvent) => {
+        // Common volume key codes across different browsers
+        if (event.code === 'AudioVolumeUp' || event.code === 'AudioVolumeDown' ||
+            event.key === 'AudioVolumeUp' || event.key === 'AudioVolumeDown' ||
+            event.keyCode === 175 || event.keyCode === 174) { // Volume up/down key codes
+          event.preventDefault();
+          callback();
+          console.log('Volume button detected:', event.code || event.key);
+        }
+      };
+      
+      document.addEventListener('keydown', this.volumeButtonListener, { capture: true });
+      console.log('Web volume button listener added');
+    }
+  }
+
+  static removeVolumeButtonListener(): void {
+    if (this.volumeButtonListener) {
+      document.removeEventListener('keydown', this.volumeButtonListener, { capture: true });
+      this.volumeButtonListener = null;
+      
+      // Clear media session handlers
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('seekforward', null);
+        navigator.mediaSession.setActionHandler('seekbackward', null);
+      }
+      
+      console.log('Volume button listener removed');
     }
   }
 
