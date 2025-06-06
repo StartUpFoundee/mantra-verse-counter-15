@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, RotateCcw, Target, Eye } from "lucide-react";
+import { Plus, Minus, RotateCcw, Target, Eye, Volume2 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import TargetSelector from "@/components/TargetSelector";
 import CompletionAlert from "@/components/CompletionAlert";
@@ -24,6 +25,7 @@ const ManualCounter: React.FC = () => {
   const [isPublicMode, setIsPublicMode] = useState<boolean>(false);
   const [volumeButtonEnabled, setVolumeButtonEnabled] = useState<boolean>(true);
   const [volumeButtonDetected, setVolumeButtonDetected] = useState<boolean>(false);
+  const [volumeButtonLastUsed, setVolumeButtonLastUsed] = useState<number>(0);
 
   // Initialize native features and media session
   useEffect(() => {
@@ -45,21 +47,52 @@ const ManualCounter: React.FC = () => {
     initNativeFeatures();
   }, [isPublicMode]);
 
-  // Enhanced volume button detection
+  // Enhanced volume button detection with better feedback
   useEffect(() => {
     if (volumeButtonEnabled && targetCount !== null) {
       const handleVolumePress = () => {
+        const now = Date.now();
+        
+        // Prevent multiple triggers within short timespan
+        if (now - volumeButtonLastUsed < 300) {
+          return;
+        }
+        
+        setVolumeButtonLastUsed(now);
         setVolumeButtonDetected(true);
         handleIncrement();
         
-        // Reset the visual indicator after a short delay
+        // Enhanced feedback for volume button usage
+        toast.success("📱 Volume button detected!", {
+          duration: 1500,
+          style: { 
+            background: '#16a34a', 
+            color: 'white',
+            border: '2px solid #22c55e'
+          }
+        });
+        
+        // Reset the visual indicator after a delay
         setTimeout(() => {
           setVolumeButtonDetected(false);
-        }, 300);
+        }, 500);
       };
       
       NativeFeatures.addVolumeButtonListener(handleVolumePress);
-      console.log('Enhanced volume button detection enabled');
+      console.log('Enhanced volume button detection enabled for manual counter');
+      
+      // Show initial setup toast
+      if (volumeButtonEnabled) {
+        setTimeout(() => {
+          toast.info("📱 Volume buttons are active! Try pressing volume up or down to count mantras.", {
+            duration: 4000,
+            style: { 
+              background: '#3b82f6', 
+              color: 'white'
+            }
+          });
+        }, 1000);
+      }
     } else {
       NativeFeatures.removeVolumeButtonListener();
     }
@@ -67,7 +100,7 @@ const ManualCounter: React.FC = () => {
     return () => {
       NativeFeatures.removeVolumeButtonListener();
     };
-  }, [volumeButtonEnabled, targetCount]);
+  }, [volumeButtonEnabled, targetCount, volumeButtonLastUsed]);
 
   // Load saved counts from IndexedDB on component mount
   useEffect(() => {
@@ -187,9 +220,35 @@ const ManualCounter: React.FC = () => {
   };
 
   const toggleVolumeButton = () => {
-    setVolumeButtonEnabled(!volumeButtonEnabled);
-    toast.info(`Volume button counting ${!volumeButtonEnabled ? 'enabled' : 'disabled'}`, {
-      duration: 2000,
+    const newState = !volumeButtonEnabled;
+    setVolumeButtonEnabled(newState);
+    
+    if (newState) {
+      toast.success("📱 Volume button counting ENABLED! Press volume up/down to count.", {
+        duration: 3000,
+        style: { 
+          background: '#16a34a', 
+          color: 'white'
+        }
+      });
+    } else {
+      toast.info("📱 Volume button counting DISABLED", {
+        duration: 2000,
+        style: { 
+          background: '#6b7280', 
+          color: 'white'
+        }
+      });
+    }
+  };
+
+  const testVolumeButton = () => {
+    toast.info("📱 Try pressing your device's volume up or volume down button now!", {
+      duration: 5000,
+      style: { 
+        background: '#3b82f6', 
+        color: 'white'
+      }
     });
   };
 
@@ -267,7 +326,7 @@ const ManualCounter: React.FC = () => {
       {/* Counter Display - Mobile Optimized with Volume Button Indicator */}
       <div className="counter-display relative mb-8 lg:mb-10">
         <div className={`w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl hover:shadow-3xl transition-all duration-300 ${
-          volumeButtonDetected ? 'ring-4 ring-green-400 ring-opacity-75 animate-pulse' : ''
+          volumeButtonDetected ? 'ring-4 ring-green-400 ring-opacity-75 animate-pulse scale-105' : ''
         }`}>
           <div className="text-white text-center">
             <div className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl mb-2 lg:mb-3">ॐ</div>
@@ -275,10 +334,17 @@ const ManualCounter: React.FC = () => {
           </div>
         </div>
         
-        {/* Volume Button Detection Indicator */}
+        {/* Enhanced Volume Button Detection Indicator */}
         {volumeButtonDetected && (
-          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
-            📱 Volume
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-sm px-4 py-2 rounded-full animate-bounce shadow-lg border-2 border-green-300">
+            📱 Volume Button!
+          </div>
+        )}
+        
+        {/* Volume Button Status Indicator */}
+        {volumeButtonEnabled && !volumeButtonDetected && (
+          <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full opacity-75">
+            📱 Ready
           </div>
         )}
       </div>
@@ -350,8 +416,8 @@ const ManualCounter: React.FC = () => {
         </Button>
       </div>
 
-      {/* Enhanced Volume Button Toggle */}
-      <div className="mb-4">
+      {/* Enhanced Volume Button Controls */}
+      <div className="flex gap-2 mb-4">
         <Button 
           variant={volumeButtonEnabled ? "default" : "outline"}
           className={`h-10 lg:h-12 px-4 lg:px-6 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 ${
@@ -361,8 +427,19 @@ const ManualCounter: React.FC = () => {
           }`}
           onClick={toggleVolumeButton}
         >
-          📱 Volume Button {volumeButtonEnabled ? 'ON' : 'OFF'}
+          <Volume2 className="w-4 h-4 mr-2" />
+          Volume {volumeButtonEnabled ? 'ON' : 'OFF'}
         </Button>
+
+        {volumeButtonEnabled && (
+          <Button 
+            variant="outline"
+            className="h-10 lg:h-12 px-3 lg:px-4 text-sm lg:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-600"
+            onClick={testVolumeButton}
+          >
+            Test
+          </Button>
+        )}
       </div>
 
       <CompletionAlert 
