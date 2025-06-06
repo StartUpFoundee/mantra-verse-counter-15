@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, RotateCcw, Target, Eye } from "lucide-react";
@@ -10,6 +9,7 @@ import { getLifetimeCount, getTodayCount, updateMantraCounts } from "@/utils/ind
 import { recordDailyActivity } from "@/utils/activityUtils";
 import PublicModeDialog from "@/components/PublicModeDialog";
 import PublicModeScreen from "@/components/PublicModeScreen";
+import { NativeFeatures } from "@/utils/nativeFeatures";
 
 const ManualCounter: React.FC = () => {
   const [targetCount, setTargetCount] = useState<number | null>(null);
@@ -22,6 +22,24 @@ const ManualCounter: React.FC = () => {
   const [showTimerComplete, setShowTimerComplete] = useState<boolean>(false);
   const [showPublicModeDialog, setShowPublicModeDialog] = useState<boolean>(false);
   const [isPublicMode, setIsPublicMode] = useState<boolean>(false);
+
+  // Initialize native features
+  useEffect(() => {
+    const initNativeFeatures = async () => {
+      await NativeFeatures.setStatusBarStyle(false);
+      
+      // Listen for app state changes
+      NativeFeatures.addAppStateListener((isActive) => {
+        if (!isActive && isPublicMode) {
+          // App went to background while in public mode - exit public mode
+          setIsPublicMode(false);
+          console.log('App backgrounded - exiting public mode');
+        }
+      });
+    };
+
+    initNativeFeatures();
+  }, [isPublicMode]);
 
   // Load saved counts from IndexedDB on component mount
   useEffect(() => {
@@ -50,11 +68,18 @@ const ManualCounter: React.FC = () => {
     }
   }, [currentCount, targetCount]);
 
-  const handleCompletion = () => {
-    // If in public mode, exit it first
+  const handleCompletion = async () => {
     if (isPublicMode) {
       setIsPublicMode(false);
+      await NativeFeatures.showStatusBar();
     }
+    
+    // Enhanced completion haptics
+    await NativeFeatures.triggerHaptic('heavy');
+    setTimeout(async () => {
+      await NativeFeatures.triggerHaptic('medium');
+    }, 200);
+    
     setShowCompletionAlert(true);
   };
 
@@ -79,16 +104,16 @@ const ManualCounter: React.FC = () => {
     const newCount = currentCount + 1;
     setCurrentCount(newCount);
     
-    // Update counts in IndexedDB and record daily activity
+    // Enhanced haptic feedback for counting
+    await NativeFeatures.triggerMantraHaptic();
+    
     try {
       const { lifetimeCount: newLifetime, todayCount: newToday } = await updateMantraCounts(1);
       setLifetimeCount(newLifetime);
       setTodayCount(newToday);
       
-      // Record daily activity for the calendar
       await recordDailyActivity(1);
       
-      // Only show toast if not in public mode
       if (!isPublicMode) {
         toast.success(`Mantra counted: ${newCount} 🕉️`, {
           duration: 1000,
@@ -99,9 +124,10 @@ const ManualCounter: React.FC = () => {
     }
   };
 
-  const handleDecrement = () => {
+  const handleDecrement = async () => {
     if (currentCount > 0) {
       setCurrentCount(currentCount - 1);
+      await NativeFeatures.triggerHaptic('light');
       toast.info("Count decreased", {
         duration: 800,
       });
@@ -121,12 +147,14 @@ const ManualCounter: React.FC = () => {
     setTargetCount(null);
   };
 
-  const handleStartPublicMode = () => {
+  const handleStartPublicMode = async () => {
     setShowPublicModeDialog(false);
+    await NativeFeatures.hideStatusBar();
     setIsPublicMode(true);
   };
 
-  const handleExitPublicMode = () => {
+  const handleExitPublicMode = async () => {
+    await NativeFeatures.showStatusBar();
     setIsPublicMode(false);
   };
 
