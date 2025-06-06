@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, RotateCcw, Target, Eye } from "lucide-react";
@@ -24,16 +23,19 @@ const ManualCounter: React.FC = () => {
   const [showPublicModeDialog, setShowPublicModeDialog] = useState<boolean>(false);
   const [isPublicMode, setIsPublicMode] = useState<boolean>(false);
   const [volumeButtonEnabled, setVolumeButtonEnabled] = useState<boolean>(true);
+  const [volumeButtonDetected, setVolumeButtonDetected] = useState<boolean>(false);
 
-  // Initialize native features
+  // Initialize native features and media session
   useEffect(() => {
     const initNativeFeatures = async () => {
       await NativeFeatures.setStatusBarStyle(false);
       
+      // Initialize media session for better web volume button detection
+      NativeFeatures.initializeMediaSession();
+      
       // Listen for app state changes
       NativeFeatures.addAppStateListener((isActive) => {
         if (!isActive && isPublicMode) {
-          // App went to background while in public mode - exit public mode
           setIsPublicMode(false);
           console.log('App backgrounded - exiting public mode');
         }
@@ -43,11 +45,21 @@ const ManualCounter: React.FC = () => {
     initNativeFeatures();
   }, [isPublicMode]);
 
-  // Volume button detection
+  // Enhanced volume button detection
   useEffect(() => {
     if (volumeButtonEnabled && targetCount !== null) {
-      NativeFeatures.addVolumeButtonListener(handleIncrement);
-      console.log('Volume button detection enabled');
+      const handleVolumePress = () => {
+        setVolumeButtonDetected(true);
+        handleIncrement();
+        
+        // Reset the visual indicator after a short delay
+        setTimeout(() => {
+          setVolumeButtonDetected(false);
+        }, 300);
+      };
+      
+      NativeFeatures.addVolumeButtonListener(handleVolumePress);
+      console.log('Enhanced volume button detection enabled');
     } else {
       NativeFeatures.removeVolumeButtonListener();
     }
@@ -252,14 +264,23 @@ const ManualCounter: React.FC = () => {
         </div>
       </div>
       
-      {/* Counter Display - Mobile Optimized */}
+      {/* Counter Display - Mobile Optimized with Volume Button Indicator */}
       <div className="counter-display relative mb-8 lg:mb-10">
-        <div className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl hover:shadow-3xl transition-shadow duration-300">
+        <div className={`w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl hover:shadow-3xl transition-all duration-300 ${
+          volumeButtonDetected ? 'ring-4 ring-green-400 ring-opacity-75 animate-pulse' : ''
+        }`}>
           <div className="text-white text-center">
             <div className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl mb-2 lg:mb-3">ॐ</div>
             <div className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold">{currentCount}</div>
           </div>
         </div>
+        
+        {/* Volume Button Detection Indicator */}
+        {volumeButtonDetected && (
+          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
+            📱 Volume
+          </div>
+        )}
       </div>
       
       {/* Control Buttons - Mobile Responsive Layout */}
@@ -291,7 +312,7 @@ const ManualCounter: React.FC = () => {
         </Button>
       </div>
       
-      {/* Instructions - Mobile Responsive Text */}
+      {/* Enhanced Instructions - Mobile Responsive Text */}
       <div className="text-center mb-4 lg:mb-6 px-2">
         <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base lg:text-lg font-medium">
           🙏 Tap + button or press volume buttons to count
@@ -302,7 +323,7 @@ const ManualCounter: React.FC = () => {
         {volumeButtonEnabled && (
           <div className="mt-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full inline-block">
             <p className="text-green-700 dark:text-green-400 text-xs font-medium">
-              📱 Volume button counting enabled
+              📱 Volume buttons active - Try pressing volume up/down
             </p>
           </div>
         )}
@@ -329,7 +350,7 @@ const ManualCounter: React.FC = () => {
         </Button>
       </div>
 
-      {/* Volume Button Toggle */}
+      {/* Enhanced Volume Button Toggle */}
       <div className="mb-4">
         <Button 
           variant={volumeButtonEnabled ? "default" : "outline"}
