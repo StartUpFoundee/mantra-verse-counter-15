@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getActivityData, getStreakData } from "@/utils/activityUtils";
 import { getTodayCount } from "@/utils/indexedDBUtils";
 import ModernCard from "@/components/ModernCard";
-import SpiritualJourneyLevels, { getSpiritualLevel } from "@/components/SpiritualJourneyLevels";
+import { getSpiritualLevel } from "@/components/SpiritualJourneyLevels";
 
 interface ActivityData {
   [date: string]: number;
@@ -142,6 +142,17 @@ const ActiveDaysPage: React.FC = () => {
     }
   };
 
+  // Define achievement levels directly
+  const achievementLevels = [
+    { icon: '🔥', name: 'Beginner', range: '1-10' },
+    { icon: '🧘', name: 'Seeker', range: '11-50' },
+    { icon: '🕉️', name: 'Devotee', range: '51-108' },
+    { icon: '🪷', name: 'Mystic', range: '109-200' },
+    { icon: '🌟', name: 'Sage', range: '201-500' },
+    { icon: '💎', name: 'Master', range: '501-1000' },
+    { icon: '👑', name: 'Guru', range: '1000+' }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-zinc-900 dark:via-black dark:to-zinc-800 p-2 md:p-4 overflow-hidden">
       {/* Compact Header */}
@@ -208,25 +219,22 @@ const ActiveDaysPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
-            {SpiritualJourneyLevels({ activityData }).props.children.props.children[1].props.children.map((levelComponent: any, index: number) => {
-              const level = levelComponent.props.children.props.children;
-              return (
-                <div
-                  key={index}
-                  className="rounded-lg p-2 text-center transition-all duration-200 hover:scale-105 border bg-gray-100 text-gray-700 border-gray-300"
-                >
-                  <div className="flex flex-col items-center h-full justify-between">
-                    <div className="text-lg mb-1 min-h-[1.5rem] flex items-center justify-center">
-                      {level[0]?.props?.children}
-                    </div>
-                    <div className="flex-1 flex flex-col justify-center">
-                      <div className="font-semibold text-xs mb-1">{level[1]?.props?.children}</div>
-                      <div className="text-xs opacity-75">{level[2]?.props?.children}</div>
-                    </div>
+            {achievementLevels.map((level, index) => (
+              <div
+                key={index}
+                className="rounded-lg p-2 text-center transition-all duration-200 hover:scale-105 border bg-gray-100 text-gray-700 border-gray-300"
+              >
+                <div className="flex flex-col items-center h-full justify-between">
+                  <div className="text-lg mb-1 min-h-[1.5rem] flex items-center justify-center">
+                    {level.icon}
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center">
+                    <div className="font-semibold text-xs mb-1">{level.name}</div>
+                    <div className="text-xs opacity-75">{level.range}</div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </ModernCard>
       </div>
